@@ -1,0 +1,93 @@
+Auf der Clientseite muss die Schnittstelle Counter ebenfalls bekannt sein. Sie wird hier aber
+nicht noch einmal aufgeführt.
+import java.awt.*;
+import java.awt.event.*;
+import java.io.IOException;
+import java.rmi.*;
+class CountFrame extends Frame {
+private TextField displayTextField;
+private Counter counter;
+public CountFrame() throws IOException, NotBoundException {
+counter = (Counter) java.rmi.Naming.lookup("rmi://localhost/Counter");
+addComponents();
+addWindowListener(new WindowAdapter() {
+@Override
+public void windowClosing(WindowEvent e) {
+System.exit(0);
+}
+});
+setDisplayValueFromCounter();
+pack();
+setLocationRelativeTo(null);
+}
+private void addComponents() {
+Panel panel = new Panel(new FlowLayout());
+panel.add(createDecrementButton());
+createAndPrepareDisplayTextField();
+panel.add(displayTextField);
+panel.add(createIncrementButton());
+add(panel, BorderLayout.CENTER);
+add(createResetButton(), BorderLayout.SOUTH);
+}
+private void createAndPrepareDisplayTextField() {
+displayTextField = new TextField(3);
+displayTextField.setEditable(false);
+}
+private Button createResetButton() {
+Button resetButton = new Button("RESET");
+resetButton.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+try {
+counter.reset();
+displayTextField.setText(counter.counterToString());
+} catch (RemoteException ex) {
+System.out.println(ex);
+}
+}
+});
+return resetButton;
+}
+private Button createIncrementButton() {
+Button incrementButton = new Button(">");
+incrementButton.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+try {
+counter.increment();
+displayTextField.setText(counter.counterToString());
+} catch (RemoteException ex) {
+System.out.println(ex);
+}
+}
+});
+return incrementButton;
+}
+private Button createDecrementButton() {
+Button decrementButton = new Button("<");
+decrementButton.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+try {
+counter.decrement();
+setDisplayValueFromCounter();
+} catch (RemoteException ex) {
+System.out.println(ex);
+}
+}
+});
+return decrementButton;
+}
+private void setDisplayValueFromCounter() throws RemoteException {
+displayTextField.setText(counter.counterToString());
+}
+public static void main(String[] args) throws IOException, NotBoundException {
+CountFrame countFrame = new CountFrame();
+countFrame.setVisible(true);
+}
+}
+/*Bevor Server und Client gestartet werden, muss der Namensserver auf der Serverseite laufen.
+starte RMIRegistry
+direkt zusammen mit dem Server. Achtung: Nur für ein einziges Serverprogramm geeignet.
+Diese Lösung ist also
+ungeeignet, wenn mehrere Serverprogramme die Registry nutzen sollen.*/
