@@ -1,0 +1,54 @@
+import java.rmi.*;
+interface Counter extends Remote {
+void increment() throws RemoteException;
+void decrement() throws RemoteException;
+void reset() throws RemoteException;
+public String counterToString() throws RemoteException;
+}
+--------------------------------------------------------------------------
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+class CounterImpl extends UnicastRemoteObject implements Counter {
+private int startValue;
+private int value;
+private int min = 0;
+private int max = 99;
+CounterImpl(int start) throws RemoteException {
+startValue = start;
+value = start;
+System.out.println(value);
+}
+@Override
+public void increment() throws RemoteException {
+if (value < max) value++;
+System.out.println(value);
+}
+@Override
+public void decrement() throws RemoteException {
+if (value > min) value--;
+System.out.println(value);
+}
+@Override
+public void reset() throws RemoteException {
+value = startValue;
+System.out.println(value);
+}
+@Override
+public String counterToString() throws RemoteException {
+return String.valueOf(value);
+}
+}
+--------------------------------------------------------------------------
+import java.rmi.registry.LocateRegistry;
+class CounterServer {
+public static void main(String[] args) throws Exception {
+// RMI-Registry starten
+LocateRegistry.createRegistry(1099);
+System.out.println("RMI-Registry gestartet.");
+// Zaehler-Objekt vom Typ CounterImpl erzeugen und als Remote-Objekt
+// registrieren
+CounterImpl counterImpl = new CounterImpl(50);
+java.rmi.Naming.rebind("Counter", counterImpl);
+System.out.println("Counter gestartet.");
+}
+}
